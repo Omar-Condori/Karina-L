@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para ti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Caveat:wght@500;700&family=Karla:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+  /* ============================================================
+     PERSONALIZA AQUI ABAJO EN EL <script> AL FINAL DEL ARCHIVO:
+     - nombre de ella
+     - tu mensaje
+     - mensajes de tus amigos
+     - la frase que forman los corazones (FRASE_CORAZONES)
+     No hace falta tocar nada de este CSS.
+     ============================================================ */
+
+  :root{
+    --ink: #12112a;
+    --panel: #1b1a3a;
+    --panel-2: #232152;
+    --paper: #f7f1e6;
+    --paper-line: #e3d8c2;
+    --rose: #d8607f;
+    --gold: #e3b25c;
+    --text-light: #efe9de;
+    --text-soft: rgba(239,233,222,0.65);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+
+  body{
+    margin: 0;
+    background: var(--ink);
+    color: var(--text-light);
+    font-family: 'Karla', sans-serif;
+    overflow-x: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  h1, h2, .display{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+
+  .script{
+    font-family: 'Caveat', cursive;
+    color: var(--rose);
+  }
+
+  a:focus-visible, button:focus-visible{
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+  }
+
+  /* ---------- starfield background, persistent ---------- */
+  #stars{
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ---------- intro: ositos formando una frase con corazones ---------- */
+  .intro-scene{
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  #heart-canvas{
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .bear{
+    position: absolute;
+    bottom: 4%;
+    width: clamp(72px, 12vw, 112px);
+    z-index: 2;
+    --flip: 1;
+    transform: scaleX(var(--flip));
+    filter: drop-shadow(0 12px 18px rgba(0,0,0,0.4));
+  }
+  .bear-left{ left: 4%; }
+  .bear-right{ right: 4%; --flip: -1; }
+
+  .bear.shooting{ animation: bear-shake 0.35s ease-in-out infinite; }
+  @keyframes bear-shake{
+    0%, 100%{ transform: translateY(0) scaleX(var(--flip)); }
+    50%{ transform: translateY(-8px) scaleX(var(--flip)); }
+  }
+
+  .bear.shooting .ear-left {
+    animation: ear-wiggle-left 0.35s ease-in-out infinite;
+    transform-origin: 50px 45px;
+  }
+  .bear.shooting .ear-right {
+    animation: ear-wiggle-right 0.35s ease-in-out infinite;
+    transform-origin: 140px 45px;
+  }
+  @keyframes ear-wiggle-left {
+    0%, 100% { transform: rotate(-30deg); }
+    50% { transform: rotate(-45deg) scaleY(1.15); }
+  }
+  @keyframes ear-wiggle-right {
+    0%, 100% { transform: rotate(30deg); }
+    50% { transform: rotate(45deg) scaleY(1.15); }
+  }
+  #start-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0f1423; /* Mismo fondo de la escena */
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-family: 'Karla', sans-serif;
+  }
+  #start-overlay button {
+    background: #ff1e56;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 30, 86, 0.4);
+    animation: pulse-button 1.5s infinite;
+  }
+  @keyframes pulse-button {
+    0% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 30, 86, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 4px 25px rgba(255, 30, 86, 0.7); }
+    100% { transform: scale(1); box-shadow: 0 4px 15px rgba(255, 30, 86, 0.4); }
+  }
+
+  .intro-continue{
+    position: absolute;
+    bottom: 12%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    background: #ff1e56;
+    color: white;
+    border: none;
+    padding: 12px 28px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    font-family: 'Karla', sans-serif;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 30, 86, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.7s ease;
+  }
+  .intro-continue.visible{ 
+    opacity: 1; 
+    pointer-events: auto; 
+    animation: pulse-continue 1.5s infinite;
+  }
+  .intro-continue:hover{ 
+    background: #e0174a;
+  }
+
+  @keyframes pulse-continue {
+    0% { transform: translateX(-50%) scale(1); box-shadow: 0 4px 15px rgba(255, 30, 86, 0.4); }
+    50% { transform: translateX(-50%) scale(1.05); box-shadow: 0 4px 25px rgba(255, 30, 86, 0.7); }
+    100% { transform: translateX(-50%) scale(1); box-shadow: 0 4px 15px rgba(255, 30, 86, 0.4); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .intro-scene{ display: none; }
+  }
+
+  /* ---------- envelope scene ---------- */
+  .scene{
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 24px;
+  }
+
+  .scene p.lead{
+    max-width: 34ch;
+    color: var(--text-soft);
+    margin: 18px 0 34px;
+    font-size: 1.05rem;
+  }
+
+  .envelope-wrap{
+    perspective: 1400px;
+    width: min(320px, 78vw);
+  }
+
+  .envelope{
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  .env-body{
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(155deg, #2b2960, #201e4a);
+    border-radius: 6px;
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,0.65);
+  }
+
+  .env-body::after{
+    content: "";
+    position: absolute;
+    left: 6%; right: 6%; bottom: 8%;
+    top: 30%;
+    background: linear-gradient(160deg, #34316f, #24225a);
+    clip-path: polygon(0 0, 50% 46%, 100% 0, 100% 100%, 0 100%);
+    border-radius: 4px;
+  }
+
+  .env-flap{
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 58%;
+    background: linear-gradient(160deg, #3b3878, #2a2860);
+    clip-path: polygon(0 0, 100% 0, 50% 92%);
+    transform-origin: top center;
+    transition: transform 0.9s cubic-bezier(.6,.1,.25,1);
+    border-radius: 6px 6px 0 0;
+  }
+
+  .envelope.open .env-flap{
+    transform: rotateX(180deg);
+  }
+
+  .env-seal{
+    position: absolute;
+    top: 43%; left: 50%;
+    width: 46px; height: 46px;
+    background: radial-gradient(circle at 35% 30%, var(--rose), #a6415e);
+    border-radius: 50%;
+    transform: translate(-50%,-50%);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    z-index: 2;
+  }
+
+  .env-seal svg{ width: 20px; height: 20px; fill: var(--paper); }
+
+  .envelope.open .env-seal{
+    opacity: 0;
+    transform: translate(-50%,-50%) scale(0.4);
+  }
+
+  .env-letter{
+    position: absolute;
+    left: 8%; right: 8%;
+    top: 6%;
+    height: 78%;
+    background: var(--paper);
+    border-radius: 3px;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    transform: translateY(0);
+    transition: transform 0.9s cubic-bezier(.5,0,.2,1) 0.15s;
+    z-index: 1;
+  }
+
+  .envelope.open .env-letter{
+    transform: translateY(-135%);
+  }
+
+  .tap-hint{
+    margin-top: 26px;
+    font-size: 0.85rem;
+    color: var(--text-soft);
+    letter-spacing: 0.02em;
+  }
+
+  .scroll-cue{
+    position: absolute;
+    bottom: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    color: var(--text-soft);
+    opacity: 0;
+    transition: opacity 0.6s ease 1.2s;
+  }
+
+  .scene.opened .scroll-cue{ opacity: 1; }
+  .scene.opened .envelope-wrap, .scene.opened p.lead, .scene.opened .tap-hint{
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  /* ---------- letter section ---------- */
+  .letter-section{
+    position: relative;
+    z-index: 1;
+    padding: 90px 20px 110px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .letter-card{
+    max-width: 620px;
+    width: 100%;
+    background: var(--paper);
+    color: #2a2440;
+    border-radius: 4px;
+    padding: clamp(32px, 6vw, 64px);
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,0.6);
+    position: relative;
+  }
+
+  .letter-card::before{
+    content: "";
+    position: absolute;
+    inset: 14px;
+    border: 1px solid var(--paper-line);
+    pointer-events: none;
+  }
+
+  .letter-greeting{
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+  }
+
+  .letter-body{
+    margin-top: 26px;
+    font-size: 1.08rem;
+    line-height: 1.75;
+    max-width: 58ch;
+  }
+
+  .letter-body p{ margin: 0 0 18px; }
+
+  .letter-sign{
+    margin-top: 34px;
+    font-size: 2rem;
+  }
+
+  /* ---------- friends section ---------- */
+  .friends-section{
+    position: relative;
+    z-index: 1;
+    padding: 40px 20px 110px;
+  }
+
+  .friends-header{
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto 56px;
+  }
+
+  .friends-header h2{
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+  }
+
+  .friends-header p{
+    color: var(--text-soft);
+    margin-top: 10px;
+  }
+
+  .notes-grid{
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 34px 26px;
+  }
+
+  .note{
+    background: var(--paper);
+    color: #2a2440;
+    border-radius: 3px;
+    padding: 26px 24px 22px;
+    box-shadow: 0 18px 34px -14px rgba(0,0,0,0.55);
+    transform: rotate(var(--tilt, -1.5deg));
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+  }
+
+  .note:nth-child(3n+1){ --tilt: -2deg; }
+  .note:nth-child(3n+2){ --tilt: 1.4deg; }
+  .note:nth-child(3n){ --tilt: -0.8deg; }
+
+  .note:hover{
+    transform: rotate(0deg) translateY(-4px);
+    box-shadow: 0 26px 44px -14px rgba(0,0,0,0.6);
+  }
+
+  .note-text{
+    font-size: 1.02rem;
+    line-height: 1.55;
+  }
+
+  .note-from{
+    margin-top: 16px;
+    font-family: 'Caveat', cursive;
+    color: var(--rose);
+    font-size: 1.5rem;
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 50px 20px 70px;
+  }
+
+  footer .script{
+    font-size: 2.1rem;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  footer .small{
+    color: var(--text-soft);
+    font-size: 0.85rem;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- Pantalla de inicio obligatoria para permitir que el navegador reproduzca audio -->
+<div id="start-overlay">
+  <button id="btn-start-surprise">Toca para abrir</button>
+</div>
+
+<canvas id="stars"></canvas>
+
+<!-- Animación de Introducción -->
+<section class="intro-scene" id="intro-scene">
+  <canvas id="heart-canvas"></canvas>
+
+  <div class="bear bear-left" id="bear-left">
+    <svg viewBox="0 0 200 220" width="100%" height="100%" aria-hidden="true" class="cute-bear">
+      <defs>
+        <radialGradient id="bodyGrad" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="80%" stop-color="#f4f6f8"/>
+          <stop offset="100%" stop-color="#e2e6ea"/>
+        </radialGradient>
+      </defs>
+
+      <path d="M 120 120 C 170 120, 180 180, 140 200 C 110 210, 80 190, 80 160 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="145" cy="195" rx="20" ry="14" fill="#d1d6de" transform="rotate(-15 145 195)"/>
+
+      <path d="M 50 110 C 30 180, 80 210, 130 190 C 160 170, 150 120, 130 90 C 110 60, 60 70, 50 110 Z" fill="url(#bodyGrad)"/>
+
+      <path d="M 60 130 C 50 180, 60 210, 90 210 C 110 210, 110 180, 95 150 Z" fill="url(#bodyGrad)"/>
+      <ellipse cx="80" cy="205" rx="18" ry="12" fill="#d1d6de"/>
+
+      <path d="M 40 100 C 10 130, 20 160, 45 160 C 65 160, 70 120, 70 100 Z" fill="url(#bodyGrad)"/>
+
+      <circle cx="160" cy="160" r="14" fill="#e2e6ea"/>
+
+      <g class="bear-head">
+        <g class="ear-left">
+          <ellipse cx="50" cy="45" rx="18" ry="26" fill="#f4f6f8" transform="rotate(-30 50 45)"/>
+          <ellipse cx="50" cy="45" rx="10" ry="15" fill="#ff99bb" transform="rotate(-30 50 45)"/>
+        </g>
+        <g class="ear-right">
+          <ellipse cx="140" cy="45" rx="18" ry="26" fill="#f4f6f8" transform="rotate(30 140 45)"/>
+          <ellipse cx="140" cy="45" rx="10" ry="15" fill="#ff99bb" transform="rotate(30 140 45)"/>
+        </g>
+
+        <ellipse cx="95" cy="85" rx="65" ry="55" fill="url(#bodyGrad)"/>
+
+        <ellipse cx="45" cy="95" rx="16" ry="12" fill="#ff99bb" opacity="0.8"/>
+        <ellipse cx="145" cy="95" rx="16" ry="12" fill="#ff99bb" opacity="0.8"/>
+
+        <ellipse cx="95" cy="105" rx="28" ry="20" fill="#ffffff"/>
+        <ellipse cx="95" cy="95" rx="12" ry="8" fill="#4a2e1b"/>
+        <ellipse cx="91" cy="92" rx="4" ry="2" fill="#ffffff" opacity="0.9"/>
+
+        <path d="M 85 108 C 85 115, 95 118, 95 118 C 95 118, 105 115, 105 108" stroke="#4a2e1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M 95 103 L 95 118" stroke="#4a2e1b" stroke-width="2" fill="none"/>
+
+        <circle cx="65" cy="80" r="6" fill="#1a1a1a"/>
+        <circle cx="67" cy="78" r="2" fill="#ffffff"/>
+        <circle cx="125" cy="80" r="6" fill="#1a1a1a"/>
+        <circle cx="127" cy="78" r="2" fill="#ffffff"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="bear bear-right" id="bear-right">
+    <svg viewBox="0 0 200 220" width="100%" height="100%" aria-hidden="true" class="cute-bear">
+      <defs>
+        <radialGradient id="bodyGrad2" cx="50%" cy="50%" r="50%" fx="30%" fy="30%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="80%" stop-color="#f4f6f8"/>
+          <stop offset="100%" stop-color="#e2e6ea"/>
+        </radialGradient>
+      </defs>
+
+      <path d="M 120 120 C 170 120, 180 180, 140 200 C 110 210, 80 190, 80 160 Z" fill="url(#bodyGrad2)"/>
+      <ellipse cx="145" cy="195" rx="20" ry="14" fill="#d1d6de" transform="rotate(-15 145 195)"/>
+
+      <path d="M 50 110 C 30 180, 80 210, 130 190 C 160 170, 150 120, 130 90 C 110 60, 60 70, 50 110 Z" fill="url(#bodyGrad2)"/>
+
+      <path d="M 60 130 C 50 180, 60 210, 90 210 C 110 210, 110 180, 95 150 Z" fill="url(#bodyGrad2)"/>
+      <ellipse cx="80" cy="205" rx="18" ry="12" fill="#d1d6de"/>
+
+      <path d="M 40 100 C 10 130, 20 160, 45 160 C 65 160, 70 120, 70 100 Z" fill="url(#bodyGrad2)"/>
+
+      <circle cx="160" cy="160" r="14" fill="#e2e6ea"/>
+
+      <g class="bear-head">
+        <g class="ear-left">
+          <ellipse cx="50" cy="45" rx="18" ry="26" fill="#f4f6f8" transform="rotate(-30 50 45)"/>
+          <ellipse cx="50" cy="45" rx="10" ry="15" fill="#ff99bb" transform="rotate(-30 50 45)"/>
+        </g>
+        <g class="ear-right">
+          <ellipse cx="140" cy="45" rx="18" ry="26" fill="#f4f6f8" transform="rotate(30 140 45)"/>
+          <ellipse cx="140" cy="45" rx="10" ry="15" fill="#ff99bb" transform="rotate(30 140 45)"/>
+        </g>
+
+        <ellipse cx="95" cy="85" rx="65" ry="55" fill="url(#bodyGrad2)"/>
+
+        <ellipse cx="45" cy="95" rx="16" ry="12" fill="#ff99bb" opacity="0.8"/>
+        <ellipse cx="145" cy="95" rx="16" ry="12" fill="#ff99bb" opacity="0.8"/>
+
+        <ellipse cx="95" cy="105" rx="28" ry="20" fill="#ffffff"/>
+        <ellipse cx="95" cy="95" rx="12" ry="8" fill="#4a2e1b"/>
+        <ellipse cx="91" cy="92" rx="4" ry="2" fill="#ffffff" opacity="0.9"/>
+
+        <path d="M 85 108 C 85 115, 95 118, 95 118 C 95 118, 105 115, 105 108" stroke="#4a2e1b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        <path d="M 95 103 L 95 118" stroke="#4a2e1b" stroke-width="2" fill="none"/>
+
+        <circle cx="65" cy="80" r="6" fill="#1a1a1a"/>
+        <circle cx="67" cy="78" r="2" fill="#ffffff"/>
+        <circle cx="125" cy="80" r="6" fill="#1a1a1a"/>
+        <circle cx="127" cy="78" r="2" fill="#ffffff"/>
+      </g>
+    </svg>
+  </div>
+
+    <button class="intro-continue" id="intro-continue">Siguiente</button>
+  </section>
+
+  <!-- Audio de fondo -->
+  <audio id="bg-music" src="assets/08%20Novios.mp3" loop autoplay></audio>
+
+  <!-- Carta Directamente -->
+  <section class="letter-section" id="letter-section" style="display: none;">
+    <article class="letter-card">
+      <h2 class="letter-greeting" id="letter-greeting">Para <span class="script">[Nombre]</span></h2>
+      <div class="letter-body" id="letter-body">
+        <!-- el contenido se inserta desde JS -->
+      </div>
+      <div class="letter-sign script" id="letter-sign">&mdash; [Tu nombre]</div>
+    </article>
+  </section>
+
+  <!-- Cuadros Adicionales -->
+  <section class="friends-section" id="extra-notes-section" style="display: none;">
+    <div class="notes-grid" id="notes-grid">
+      <!-- los cuadros se insertan desde JS -->
+    </div>
+  </section>
+
+  <footer id="footer" style="display: none;">
+    <span class="script" id="footer-name">para [Nombre]</span>
+  </footer>
+<script>
+
+  /* ================================================================
+     PERSONALIZA TODO AQUI. No necesitas tocar nada mas del archivo.
+     ================================================================ */
+
+  const DATA = {
+    nombreElla: "KARINA L.",
+    tuNombre: "OMAR",
+
+    // Cada elemento del array es un parrafo de tu carta.
+    mensaje: [
+      "HOLA Antes que nada, quiero poner a Dios en el primer lugar.",
+      "Si algo deseo contigo, es que todo lo que pueda surgir entre nosotros esté bajo Su voluntad y dirección."
+    ],
+    
+    mensajesAdicionales: [
+      "No te escribo para enamorarte, tampoco para llamar tu atención ni para hacerte alguna insinuación. Escribo lo que siento y lo que causas en mí, en la forma en que te percibo.",
+      "A veces describo tu belleza, otras veces lo bonito de tu ser, y al final solo puedo decir: ERES HERMOSA. Si me vieras sonreír mientras te escribo, entenderías que no lo hago para impresionarte; simplemente me nace hacerlo porque te amo.",
+      "No soy de conocer muchas personas, pero contigo es diferente. Me enamoré más de ti en un mes que en cinco años, y ahí me di cuenta de que quiero conocerte cada día, como si siempre hubiera algo nuevo que descubrir en ti.",
+      "Y voy por todo, pero siempre de la mano de Dios. Si me equivoco, que sea por haberlo intentado y no por haber tenido miedo. Prefiero confiar en Su voluntad y descubrir hasta dónde puede llevarnos esto."
+    ],
+
+  };
+
+  // ---- inyectar contenido ----
+  document.getElementById("letter-greeting").innerHTML =
+    `Para <span class="script">${DATA.nombreElla}</span>`;
+
+  document.getElementById("letter-body").innerHTML =
+    DATA.mensaje.map(p => `<p>${p}</p>`).join("");
+
+  document.getElementById("letter-sign").textContent = `${DATA.tuNombre}`;
+  document.getElementById("footer-name").textContent = `CONTINUARA :)`;
+
+  const notesGrid = document.getElementById("notes-grid");
+  DATA.mensajesAdicionales.forEach((texto, i) => {
+    const angle = (Math.random() - 0.5) * 6; // leve rotación
+    const delay = i * 0.1;
+    const card = document.createElement("div");
+    card.className = "note";
+    card.style.transform = `rotate(${angle}deg)`;
+    card.style.animationDelay = `${delay}s`;
+    card.innerHTML = `<div class="note-text">"${texto}"</div>`;
+    notesGrid.appendChild(card);
+  });
+
+  // ---- fondo estrellado ----
+  const canvas = document.getElementById("stars");
+  const ctx = canvas.getContext("2d");
+  let stars = [];
+
+  function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = document.body.scrollHeight;
+    const count = Math.floor((canvas.width * canvas.height) / 9000);
+    stars = Array.from({length: count}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.3 + 0.2,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.8
+    }));
+  }
+
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function draw(t){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#efe9de";
+    for (const s of stars){
+      const twinkle = prefersReducedMotion ? 0.7 : 0.5 + 0.5 * Math.sin(t * 0.001 * s.speed + s.phase);
+      ctx.globalAlpha = 0.15 + twinkle * 0.55;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+
+  window.addEventListener("resize", resize);
+  resize();
+  requestAnimationFrame(draw);
+
+  // ================================================================
+  // Intro: los ositos disparan corazones que van construyendo la
+  // frase FILA POR FILA (como un muro, de abajo hacia arriba) y
+  // ademas tienen un aro de corazones flotando siempre a su alrededor.
+  // Cuando la frase esta completa, se transforma en dos corazones.
+  // Para cambiar la frase, edita FRASE_CORAZONES abajo.
+  // ================================================================
+
+  const FRASE_CORAZONES = "te quiero";
+
+  const introScene = document.getElementById("intro-scene");
+  const heartCanvas = document.getElementById("heart-canvas");
+  const hctx = heartCanvas.getContext("2d");
+  const bearLeft = document.getElementById("bear-left");
+  const bearRight = document.getElementById("bear-right");
+  const continueBtn = document.getElementById("intro-continue");
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let iw = 0, ih = 0;
+  let introActive = true;
+  let introState = "idle"; // idle -> spawning -> holding -> transforming -> formed
+  let activeProjectiles = [];
+  let ambientProjectiles = [];
+  let settledHearts = [];
+  let orangeGlowAlpha = 0;
+  let originLeft = { x: 0, y: 0 }, originRight = { x: 0, y: 0 };
+  let bearCenterLeft = { x: 0, y: 0 }, bearCenterRight = { x: 0, y: 0 };
+  let orbitLeft = [], orbitRight = [];
+  let lastSpawn = 0;
+  let holdStart = 0;
+  let mergeStart = 0;
+  let spawnToggle = 0;
+
+  // construccion "por filas" (muro)
+  let rows = [];
+  let rowIndex = 0;
+  let rowQueue = [];
+  let rowPending = 0;
+  let allRowsQueued = false;
+
+  function shuffle(arr){
+    for (let i = arr.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+  function easeInOutCubic(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
+
+  function quadPoint(p0, p1, p2, t){
+    const u = 1 - t;
+    return {
+      x: u*u*p0.x + 2*u*t*p1.x + t*t*p2.x,
+      y: u*u*p0.y + 2*u*t*p1.y + t*t*p2.y
+    };
+  }
+
+  function pickHeartColor(){
+    const r = Math.random();
+    if (r < 0.12) return "#e3b25c";
+    if (r < 0.55) return "#ff4d6d";
+    return "#ff1e56";
+  }
+
+  // glow=true -> corazon brillante (para los que vuelan y el aro decorativo)
+  // glow=false -> corazon plano y liviano (para el muro ya asentado, hay muchos)
+  function drawHeart(ctx, x, y, size, color, alpha, glow){
+    ctx.save();
+    ctx.translate(x, y);
+    if (glow){
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = color;
+    }
+    const s = size / 18;
+    ctx.scale(s, s);
+    ctx.beginPath();
+    ctx.moveTo(0, 3);
+    ctx.bezierCurveTo(0, 1, -2, -1, -5, -1);
+    ctx.bezierCurveTo(-9, -1, -9, 4, -9, 4);
+    ctx.bezierCurveTo(-9, 9, -4, 12, 0, 16);
+    ctx.bezierCurveTo(4, 12, 9, 9, 9, 4);
+    ctx.bezierCurveTo(9, 4, 9, -1, 5, -1);
+    ctx.bezierCurveTo(2, -1, 0, 1, 0, 3);
+    ctx.closePath();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = glow ? "#ffe6f0" : color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function sizeIntroCanvas(){
+    const rect = introScene.getBoundingClientRect();
+    iw = rect.width;
+    ih = rect.height;
+    const dpr = window.devicePixelRatio || 1;
+    heartCanvas.width = iw * dpr;
+    heartCanvas.height = ih * dpr;
+    heartCanvas.style.width = iw + "px";
+    heartCanvas.style.height = ih + "px";
+    hctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function getOrigin(el){
+    const r = el.getBoundingClientRect();
+    const sr = introScene.getBoundingClientRect();
+    return { x: r.left - sr.left + r.width * 0.5, y: r.top - sr.top + r.height * 0.55 };
+  }
+
+  function getBearCenter(el){
+    const r = el.getBoundingClientRect();
+    const sr = introScene.getBoundingClientRect();
+    return { x: r.left - sr.left + r.width * 0.5, y: r.top - sr.top + r.height * 0.42 };
+  }
+
+  // ---------- aro de corazones alrededor de cada osito ----------
+  function buildOrbitHearts(){
+    const arr = [];
+    const rings = [
+      { count: 6, radiusX: 58, radiusY: 44, sizeMin: 6, sizeMax: 10, speed: 0.35 },
+      { count: 5, radiusX: 92, radiusY: 66, sizeMin: 5, sizeMax: 8, speed: -0.24 }
+    ];
+    rings.forEach(cfg => {
+      for (let i = 0; i < cfg.count; i++){
+        arr.push({
+          angle: (i / cfg.count) * Math.PI * 2 + Math.random() * 0.3,
+          radiusX: cfg.radiusX + Math.random() * 10,
+          radiusY: cfg.radiusY + Math.random() * 8,
+          speed: cfg.speed + (Math.random() * 0.1 - 0.05),
+          size: cfg.sizeMin + Math.random() * (cfg.sizeMax - cfg.sizeMin),
+          phase: Math.random() * Math.PI * 2,
+          color: pickHeartColor()
+        });
+      }
+    });
+    return arr;
+  }
+
+  function drawOrbit(now, center, hearts){
+    const t = now / 1000;
+    hearts.forEach(h => {
+      const ang = h.angle + t * h.speed;
+      const bob = Math.sin(t * 1.4 + h.phase) * 5;
+      const x = center.x + Math.cos(ang) * h.radiusX;
+      const y = center.y + Math.sin(ang) * h.radiusY + bob;
+      const pulse = 1 + 0.18 * Math.sin(t * 2.2 + h.phase);
+      drawHeart(hctx, x, y, h.size * pulse, h.color, 0.8, true);
+    });
+  }
+
+  // ---------- construir la frase, agrupada en filas (muro) ----------
+  function nextRow(){
+    if (rowIndex >= rows.length){
+      allRowsQueued = true;
+      rowQueue = [];
+      rowPending = 0;
+      return;
+    }
+    rowQueue = shuffle(rows[rowIndex].slice());
+    rowPending = rowQueue.length;
+  }
+
+  function buildTextTargets(){
+    const off = document.createElement("canvas");
+    off.width = iw;
+    off.height = ih;
+    const octx = off.getContext("2d");
+
+    let fontSize = Math.min(iw / 5, 150);
+    octx.font = `900 ${fontSize}px Arial, sans-serif`;
+    while (octx.measureText(FRASE_CORAZONES).width > iw * 0.85 && fontSize > 16){
+      fontSize -= 2;
+      octx.font = `900 ${fontSize}px Arial, sans-serif`;
+    }
+    octx.fillStyle = "#000";
+    octx.textAlign = "center";
+    octx.textBaseline = "middle";
+    octx.fillText(FRASE_CORAZONES, iw / 2, ih * 0.38);
+
+    const data = octx.getImageData(0, 0, iw, ih).data;
+    const allPts = [];
+    for (let y = 0; y < ih; y++){
+      for (let x = 0; x < iw; x++){
+        const idx = (y * iw + x) * 4 + 3;
+        if (data[idx] > 128) {
+          allPts.push({ x, y });
+          // Duplicamos los puntos con un poco de ruido para tener "miles y millones" de partículas
+          allPts.push({ x: x + (Math.random() * 2 - 1), y: y + (Math.random() * 2 - 1) });
+        }
+      }
+    }
+    shuffle(allPts);
+    // Aumentamos masivamente a 14000 corazoncitos
+    const chosen = allPts.slice(0, Math.min(14000, allPts.length));
+
+    let minY = Infinity, maxY = -Infinity;
+    chosen.forEach(p => { if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; });
+    if (!isFinite(minY)){ minY = 0; maxY = 1; }
+
+    const rowCount = Math.max(8, Math.min(14, Math.round((maxY - minY) / 34) || 8));
+    const rowHeight = (maxY - minY) / rowCount || 1;
+
+    const buckets = Array.from({ length: rowCount }, () => []);
+    chosen.forEach(p => {
+      let idx = Math.floor((p.y - minY) / rowHeight);
+      idx = Math.max(0, Math.min(rowCount - 1, idx));
+      buckets[idx].push(p);
+    });
+
+    // de abajo hacia arriba, como un muro
+    rows = buckets.reverse().filter(r => r.length > 0);
+    rowIndex = 0;
+    allRowsQueued = false;
+    nextRow();
+  }
+
+  function buildHeartShapePoints(count){
+    const pts = [];
+    const offset = Math.min(140, iw * 0.16);
+    const cx1 = iw / 2 - offset;
+    const cx2 = iw / 2 + offset;
+    const cy = ih * 0.55;
+    const scale = Math.min(9, iw / 110);
+    const n = Math.max(count, 60);
+    for (let i = 0; i < n; i++){
+      const t = (i / n) * Math.PI * 2;
+      const hx = 16 * Math.pow(Math.sin(t), 3);
+      const hy = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+      const noiseX = (Math.random() - 0.5) * 18;
+      const noiseY = (Math.random() - 0.5) * 18;
+      pts.push({ x: cx1 + hx * scale + noiseX, y: cy - hy * scale + noiseY });
+      pts.push({ x: cx2 + hx * scale + noiseX, y: cy - hy * scale + noiseY });
+    }
+    shuffle(pts);
+    return pts;
+  }
+
+  function spawnProjectile(origin, target){
+    const cx = (origin.x + target.x) / 2 + (Math.random() * 40 - 20);
+    const cy = Math.min(origin.y, target.y) - (60 + Math.random() * 60);
+    activeProjectiles.push({
+      o: origin,
+      c: { x: cx, y: cy },
+      t: target,
+      start: performance.now(),
+      duration: 420 + Math.random() * 420,
+      size: 1.5 + Math.random() * 2, // Más pequeñitos como granitos de arena
+      waves: 2 + Math.random() * 2,
+      waveAmp: 14 + Math.random() * 18,
+      color: pickHeartColor()
+    });
+  }
+
+  function beginTransform(now){
+    const heartPts = buildHeartShapePoints(settledHearts.length);
+    settledHearts.forEach((h, i) => {
+      h.from = { x: h.x, y: h.y };
+      h.to = heartPts[i % heartPts.length];
+      // Más lento y pausado
+      h.tStart = now + Math.random() * 500;
+      h.tDur = 2000 + Math.random() * 1500;
+    });
+  }
+
+  function buildSingleHeartShapePoints(count){
+    const pts = [];
+    const cx = iw / 2;
+    const cy = ih * 0.55;
+    // Escala agresiva para móviles para que el corazón sea más grande: iw / 30
+    const scale = Math.min(15, iw / 30); 
+    const n = Math.max(count, 60);
+    for (let i = 0; i < n; i++){
+      const t = (i / n) * Math.PI * 2;
+      const hx = 16 * Math.pow(Math.sin(t), 3);
+      const hy = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+      const noiseX = (Math.random() - 0.5) * 22;
+      const noiseY = (Math.random() - 0.5) * 22;
+      pts.push({ x: cx + hx * scale + noiseX, y: cy - hy * scale + noiseY });
+    }
+    shuffle(pts);
+    return pts;
+  }
+
+  function beginMerge(now){
+    const singleHeartPts = buildSingleHeartShapePoints(settledHearts.length);
+    settledHearts.forEach((h, i) => {
+      h.from = { x: h.x, y: h.y };
+      h.to = singleHeartPts[i % singleHeartPts.length];
+      h.tStart = now + Math.random() * 800;
+      h.tDur = 2500 + Math.random() * 2000; 
+    });
+  }
+
+  function buildInitialsTargets(){
+    const off = document.createElement("canvas");
+    off.width = iw;
+    off.height = ih;
+    const octx = off.getContext("2d");
+
+    const cy = ih * 0.52;
+    // Letras más pequeñas en celulares para garantizar que no se salgan: iw / 8
+    const fontSizeOK = Math.min(iw / 8, 100); 
+    const fontSizeY = fontSizeOK * 0.5;
+
+    octx.fillStyle = "#000";
+    octx.textAlign = "center";
+    octx.textBaseline = "middle";
+    
+    // Dibujar O
+    octx.font = `900 ${fontSizeOK}px Arial, sans-serif`;
+    octx.fillText("O", iw / 2 - fontSizeOK * 0.85, cy);
+    
+    // Dibujar K
+    octx.fillText("K", iw / 2 + fontSizeOK * 0.85, cy);
+    
+    // Dibujar y
+    octx.font = `900 ${fontSizeY}px Arial, sans-serif`;
+    octx.fillText("y", iw / 2, cy + fontSizeOK * 0.15);
+
+    const data = octx.getImageData(0, 0, iw, ih).data;
+    const pts = [];
+    const step = 1;
+    for (let y = 0; y < ih; y += step){
+      for (let x = 0; x < iw; x += step){
+        const idx = (y * iw + x) * 4 + 3;
+        if (data[idx] > 128) pts.push({ x, y });
+      }
+    }
+    shuffle(pts);
+    return pts.slice(0, 3200); 
+  }
+
+  function beginInitials(now){
+    const pts = buildInitialsTargets();
+    
+    let minY = Infinity, maxY = -Infinity;
+    pts.forEach(p => { if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y; });
+    if (!isFinite(minY)){ minY = 0; maxY = 1; }
+
+    const rowCount = Math.max(8, Math.min(14, Math.round((maxY - minY) / 34) || 8));
+    const rowHeight = (maxY - minY) / rowCount || 1;
+
+    const buckets = Array.from({ length: rowCount }, () => []);
+    pts.forEach(p => {
+      let idx = Math.floor((p.y - minY) / rowHeight);
+      idx = Math.max(0, Math.min(rowCount - 1, idx));
+      buckets[idx].push(p);
+    });
+
+    rows = buckets.reverse().filter(r => r.length > 0);
+    rowIndex = 0;
+    allRowsQueued = false;
+    nextRow();
+
+    introState = "spawning_initials";
+    bearLeft.classList.add("shooting");
+    bearRight.classList.add("shooting");
+  }
+
+  function updateTransform(now){
+    let allDone = true;
+    settledHearts.forEach(h => {
+      const t = Math.min(1, Math.max(0, (now - h.tStart) / h.tDur));
+      if (t < 1) allDone = false;
+      const e = easeInOutCubic(t);
+      h.x = h.from.x + (h.to.x - h.from.x) * e;
+      h.y = h.from.y + (h.to.y - h.from.y) * e;
+    });
+    return allDone;
+  }
+
+  function drawSettled(now){
+    settledHearts.forEach(h => {
+      const pulse = 1 + 0.06 * Math.sin(now / 300 + (h.phase || 0));
+      drawHeart(hctx, h.x, h.y, h.size * pulse, h.color, 1, false);
+    });
+  }
+
+  function introLoop(now){
+    hctx.clearRect(0, 0, iw, ih);
+
+    drawOrbit(now, bearCenterLeft, orbitLeft);
+    drawOrbit(now, bearCenterRight, orbitRight);
+
+    if (introState !== "idle" && introState !== "initials_formed") {
+      if (!bearLeft.classList.contains("shooting")) {
+        bearLeft.classList.add("shooting");
+        bearRight.classList.add("shooting");
+      }
+      
+      if (!window.lastAmbient || now - window.lastAmbient > 40) {
+        window.lastAmbient = now;
+        const color = pickHeartColor();
+        for (let i = 0; i < 2; i++) {
+          const origin = (i === 0) ? originLeft : originRight;
+          ambientProjectiles.push({
+            x: origin.x + (Math.random() * 30 - 15),
+            y: origin.y,
+            vx: (Math.random() - 0.5) * 3,
+            vy: -3 - Math.random() * 4,
+            life: 1,
+            size: 1.5 + Math.random() * 3,
+            color: color
+          });
+        }
+      }
+    } else {
+      bearLeft.classList.remove("shooting");
+      bearRight.classList.remove("shooting");
+    }
+
+    ambientProjectiles = ambientProjectiles.filter(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 0.015;
+      if (p.life > 0) {
+        drawHeart(hctx, p.x, p.y, p.size * p.life, p.color, p.life, true);
+        return true;
+      }
+      return false;
+    });
+
+    if (introState === "spawning" || introState === "spawning_initials"){
+      if (now - lastSpawn > 20){
+        lastSpawn = now;
+        for (let k = 0; k < 50; k++){
+          if (rowQueue.length){
+            const p = rowQueue.pop();
+            const origin = (spawnToggle % 2 === 0) ? originLeft : originRight;
+            spawnToggle++;
+            spawnProjectile(origin, p);
+          } else if (rowPending === 0 && !allRowsQueued){
+            rowIndex++;
+            nextRow();
+          }
+        }
+      }
+    }
+
+    activeProjectiles = activeProjectiles.filter(p => {
+      const t = Math.min(1, (now - p.start) / p.duration);
+      const e = easeOutCubic(t);
+      const pos = quadPoint(p.o, p.c, p.t, e);
+      const wave = Math.sin(t * Math.PI * p.waves) * p.waveAmp * (1 - t);
+      pos.y += wave;
+      drawHeart(hctx, pos.x, pos.y, p.size, p.color, 1, true);
+      if (t >= 1){
+        settledHearts.push({ x: p.t.x, y: p.t.y, color: p.color, size: p.size, phase: Math.random() * Math.PI * 2 });
+        if (introState === "spawning" || introState === "spawning_initials") rowPending = Math.max(0, rowPending - 1);
+        return false;
+      }
+      return true;
+    });
+
+    if (introState === "spawning" && allRowsQueued && rowQueue.length === 0 && rowPending === 0 && activeProjectiles.length === 0){
+      introState = "holding";
+      holdStart = now;
+    }
+
+    if (introState === "spawning_initials" && allRowsQueued && rowQueue.length === 0 && rowPending === 0 && activeProjectiles.length === 0){
+      introState = "initials_formed";
+      continueBtn.classList.add("visible");
+    }
+
+    const isSingleHeartState = (
+      introState === "merging" || 
+      introState === "merged_formed" || 
+      introState === "to_initials" || 
+      introState === "spawning_initials" || 
+      introState === "initials_formed"
+    );
+    
+    if (isSingleHeartState) {
+      orangeGlowAlpha = Math.min(1, orangeGlowAlpha + 0.005);
+    } else {
+      orangeGlowAlpha = Math.max(0, orangeGlowAlpha - 0.05);
+    }
+
+    if (orangeGlowAlpha > 0) {
+      hctx.save();
+      hctx.translate(iw / 2, ih * 0.55);
+      const scale = Math.min(15, iw / 30); 
+      hctx.scale(scale, scale);
+      
+      hctx.beginPath();
+      // Dibujamos la forma exacta del corazón
+      for (let i = 0; i <= 60; i++) {
+        const t = (i / 60) * Math.PI * 2;
+        const hx = 16 * Math.pow(Math.sin(t), 3);
+        const hy = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+        // Canvas invierte el eje Y
+        if (i === 0) hctx.moveTo(hx, -hy);
+        else hctx.lineTo(hx, -hy);
+      }
+      hctx.closePath();
+      
+      // Super iluminación naranja
+      hctx.shadowBlur = 80;
+      hctx.shadowColor = `rgba(255, 100, 0, ${orangeGlowAlpha})`; // naranja brillante
+      hctx.fillStyle = `rgba(255, 100, 0, ${orangeGlowAlpha * 0.15})`; // fondo ligeramente teñido
+      hctx.fill();
+      hctx.fill(); // Doble fill para intensificar el aura sin tapar el fondo
+      
+      hctx.restore();
+    }
+
+    if (introState === "spawning"){
+      drawSettled(now);
+    } else if (introState === "holding"){
+      drawSettled(now);
+      if (now - holdStart > 1600){
+        introState = "transforming";
+        beginTransform(now);
+      }
+    } else if (introState === "transforming"){
+      const done = updateTransform(now);
+      drawSettled(now);
+      if (done){
+        introState = "formed";
+        mergeStart = now; 
+      }
+    } else if (introState === "formed"){
+      drawSettled(now);
+      // Permanecen menos tiempo (1.5 segundos)
+      if (now - mergeStart > 1500){
+        introState = "merging";
+        beginMerge(now);
+      }
+    } else if (introState === "merging"){
+      const done = updateTransform(now);
+      drawSettled(now);
+      if (done){
+        introState = "merged_formed";
+        window.initialsWaitStart = now; 
+      }
+    } else if (introState === "merged_formed"){
+      drawSettled(now);
+      if (now - window.initialsWaitStart > 2000) {
+        introState = "to_initials"; // This state transition name can remain, but beginInitials puts it in spawning_initials
+        beginInitials(now);
+      }
+    } else if (introState === "spawning_initials"){
+      drawSettled(now); // Dibuja el gran corazón que ya está asentado y las letras a medida que llegan
+    } else if (introState === "initials_formed"){
+      drawSettled(now);
+    }
+
+    if (introActive) requestAnimationFrame(introLoop);
+  }
+
+  function startIntro(){
+    sizeIntroCanvas();
+    originLeft = getOrigin(bearLeft);
+    originRight = getOrigin(bearRight);
+    bearCenterLeft = getBearCenter(bearLeft);
+    bearCenterRight = getBearCenter(bearRight);
+    orbitLeft = buildOrbitHearts();
+    orbitRight = buildOrbitHearts();
+    buildTextTargets();
+    introState = "spawning";
+    bearLeft.classList.add("shooting");
+    bearRight.classList.add("shooting");
+    requestAnimationFrame(introLoop);
+  }
+
+  function skipIntro(){
+    introActive = false;
+    rowQueue = [];
+    activeProjectiles = [];
+    bearLeft.classList.remove("shooting");
+    bearRight.classList.remove("shooting");
+    introScene.style.display = "none";
+    document.getElementById("letter-section").style.display = "flex";
+    document.getElementById("extra-notes-section").style.display = "block";
+    document.getElementById("footer").style.display = "flex";
+    document.getElementById("letter-section").scrollIntoView({ behavior: "smooth" });
+  }
+
+
+  continueBtn.addEventListener("click", () => {
+    document.getElementById("letter-section").style.display = "flex";
+    document.getElementById("extra-notes-section").style.display = "block";
+    document.getElementById("footer").style.display = "flex";
+    document.getElementById("letter-section").scrollIntoView({ behavior: "smooth" });
+  });
+
+  const startOverlay = document.getElementById("start-overlay");
+  const btnStartSurprise = document.getElementById("btn-start-surprise");
+
+  btnStartSurprise.addEventListener("click", () => {
+    // 1. Ocultar la pantalla de inicio
+    startOverlay.style.display = "none";
+    
+    // 2. Reproducir la música (ahora sí funcionará porque el usuario hizo clic)
+    const bgMusic = document.getElementById("bg-music");
+    if (bgMusic) {
+      bgMusic.volume = 0.5;
+      bgMusic.play().catch(e => console.log(e));
+    }
+
+    // 3. Iniciar la animación
+    if (!reduceMotion) {
+      startIntro();
+    } else {
+      skipIntro();
+    }
+  });
+
+</script>
+
+</body>
+</html>
