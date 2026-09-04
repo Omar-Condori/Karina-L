@@ -947,8 +947,8 @@
   function buildSingleHeartShapePoints(count){
     const pts = [];
     const cx = iw / 2;
-    const cy = ih * 0.55;
-    // Escala agresiva para móviles para que el corazón sea más grande: iw / 30
+    // Subir el centro del corazón para evitar el botón
+    const cy = ih * 0.45; 
     const scale = Math.min(15, iw / 30); 
     const n = Math.max(count, 60);
     for (let i = 0; i < n; i++){
@@ -979,8 +979,8 @@
     off.height = ih;
     const octx = off.getContext("2d");
 
-    const cy = ih * 0.52;
-    // Letras más pequeñas en celulares para garantizar que no se salgan: iw / 8
+    // Subir las letras manteniendo la proporción con el corazón
+    const cy = ih * 0.42; 
     const fontSizeOK = Math.min(iw / 8, 100); 
     const fontSizeY = fontSizeOK * 0.5;
 
@@ -1160,7 +1160,8 @@
 
     if (orangeGlowAlpha > 0) {
       hctx.save();
-      hctx.translate(iw / 2, ih * 0.55);
+      // Usar la misma traslación Y que el corazón (0.45)
+      hctx.translate(iw / 2, ih * 0.45); 
       const scale = Math.min(15, iw / 30); 
       hctx.scale(scale, scale);
       
